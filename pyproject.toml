@@ -1,0 +1,15 @@
+[project]
+name = "Abschlussabgabe"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "dh823", email = "dh8239@mci4me.at"},
+]
+dependencies = ["streamlit>=1.45.1", "matplotlib>=3.10.3", "plotly>=6.1.2", "pandas>=2.3.0", "numpy>=2.3.0"]
+requires-python = "==3.13.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
