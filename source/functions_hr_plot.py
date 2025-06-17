@@ -1,16 +1,20 @@
 import pandas as pd
-from plotly import express as px
 import plotly.graph_objects as go
 import plotly.figure_factory as ff
 
+# Code zum Assignment 3
 
-def analyse_heart_rate(FILE_PATH, max_hr):
-    # Load the heartrate data into a DataFrame
+def analyse_heart_rate(FILE_PATH = "data/activity.csv", max_hr = 200):
+    '''
+    Liest CSV-Datei in ein DataFrame ein und fügt Spalte mit Heartrate hinzu
+    Eingabeparameter: FILE_PATH : Pfad zur Datei, max_hr
+    Ausgabeparameter: DataFrame mit angehängten Heartratezones
+    '''
     df_hr = pd.read_csv(FILE_PATH)
 
     hr_zones = {}
-    # Erstellen aller Zonen als neue Spalte
     counter = 1
+
     for percent in range(50, 100, 10):
         hr_zones["Zone " + str(counter)] = max_hr * percent / 100
         counter += 1
@@ -32,15 +36,18 @@ def analyse_heart_rate(FILE_PATH, max_hr):
 
     return df_hr
 
-def plot_analysed_hr(df_hr, max_hr):
+def plot_analysed_hr(df_hr, max_hr = 200):
+    '''
+    Erstellt aus einem DataFrame ein Diagramm, welches die Herzfrequenz und die Leistung über die Zeit aufträgt
+    Eingabeparameter: aufbereitetes Dataframe aus analyse_heart_rate(), max_hr
+    Ausgabeparameter: Scatterplot
+    '''
     # Unbedingt nötig, damit Plotly die Zeitachse korrekt anzeigt
     df_hr["Time"] = df_hr.index 
     # Zeit in Minuten als neue Spalte
     df_hr["Time_min"] = df_hr["Time"] / 60
 
     # Basis-Plot für HeartRate
-    # sollte hier nicht was mit plx passieren?
-
 
     fig1 = go.Figure()
 
@@ -133,6 +140,11 @@ def plot_analysed_hr(df_hr, max_hr):
     return fig1
 
 def calculate_time_per_zone(df_hr):
+    '''
+    Erstellt Tabelle aus DataFrame aus analyse_heart_rate mit Zeiten in verschiedenen Herzfrequenzzonen
+    Eingabeparameter: aufbereitetes DataFrame aus analyse_heart_rate
+    Ausgabeparameter: Tabelle
+    '''
     zones = ["Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5"]  # explizit definieren
     zone_counts = df_hr["CurrentZone"].value_counts().reindex(zones, fill_value=0)
     time_per_zone = zone_counts.rename("Anzahl Messpunkte").to_frame()
@@ -148,10 +160,8 @@ def calculate_time_per_zone(df_hr):
 
 
 if __name__ == "__main__":
-    FILE_PATH = "data/activity.csv"  # Beispiel-Dateipfad
-    max_hr = 200  # Beispielwert für maximale Herzfrequenz
-    # my_fig = plot_analysed_hr(analyse_heart_rate(FILE_PATH, max_hr), max_hr)
-    # calculate_time_per_zone(analyse_heart_rate(FILE_PATH, max_hr))
-    # my_fig.show(render_mode='browser')
-    # fig = calculate_time_per_zone(analyse_heart_rate(FILE_PATH, max_hr))
-    # fig.show()
+    my_fig = plot_analysed_hr(analyse_heart_rate(),)
+    calculate_time_per_zone(analyse_heart_rate())
+    my_fig.show(render_mode='browser')
+    fig = calculate_time_per_zone(analyse_heart_rate())
+    fig.show()

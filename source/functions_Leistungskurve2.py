@@ -1,31 +1,34 @@
-# %%
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-# %%
-def load_data(FILE_PATH):
+
+def load_data_power(FILE_PATH = "data/activity.csv"):
     """
-    Lädt die Daten aus einer CSV- oder NPY-Datei und gibt sie als df_power zurück
+    Lädt die Daten aus einer CSV- oder NPY-Datei und gibt sie als df_power aus
+    Eingabeparameter: Pfad zur einzulesenden Datei
+    Ausgabeparameter: Dataframe
     """
     _ , ext = os.path.splitext(FILE_PATH) #spaltet den Dateinamen in Name und Dateiformat
     if ext == ".csv":
-        df = pd.read_csv(FILE_PATH)
-        df_power = df[["Duration", "PowerOriginal"]].copy()
+        with open(FILE_PATH) as file:
+            df = pd.read_csv(FILE_PATH)
+            df_power = df[["Duration", "PowerOriginal"]].copy()
+        return df_power
     elif ext == ".npy":
-        arr = np.load(FILE_PATH)
-        df_power = pd.DataFrame(arr, columns=["Duration", "PowerOriginal"])
+        with open(FILE_PATH) as file:
+            arr = np.load(FILE_PATH)
+            df_power = pd.DataFrame(arr, columns=["Duration", "PowerOriginal"])
+        return df_power
     else:
         raise ValueError("FILE_PATH muss auf eine csv oder npy Datei zeigen.")
-
-    return df_power
-
 
 def plot_power(df_power):
     """
     Visualisiert den Leistungsverlauf über die Zeit als Liniendiagramm.
-    Und gibt dieses zurück.
+    Eingabeparameter: DataFrame aus load_data_power
+    Ausgabeparameter: Diagramm Leistung über Zeit
     """
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(df_power["PowerOriginal"], label='Power', color='blue')
@@ -38,8 +41,9 @@ def plot_power(df_power):
 
 def plot_power_duration_curve(df_power):
     """
-    Plottet für jede mögliche Zeitdauer (in Sekunden) die maximal über diesen Zeitraum
-    im Mittel erbrachte Leistung (Power Duration Curve).
+    Plottet für jede mögliche Zeitdauer (in Sekunden) die maximal über diesen Zeitraum im Mittel erbrachte Leistung (Power Duration Curve).
+    Eingabeparameter: DataFrame aus load_data_power
+    Ausgabeparameter: Diagramm der Power Duration Curve
     """
     df_power = df_power["PowerOriginal"]
     
@@ -63,9 +67,9 @@ def plot_power_duration_curve(df_power):
 
 # %%
 if __name__ == "__main__":
-    fig1 = plot_power(load_data("../data/activity.csv"))
+    fig1 = plot_power(load_data_power("../data/activity.csv"))
     plt.show(fig1)
-    fig2 = plot_power_duration_curve(load_data("../data/activity.csv"))
+    fig2 = plot_power_duration_curve(load_data_power("../data/activity.csv"))
     plt.show(fig2)
     # FILE_PATH = "../data/activity.csv"
     # df_power = load_data(FILE_PATH)
