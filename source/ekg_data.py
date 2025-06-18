@@ -10,18 +10,20 @@ from person_class import Person
 # Klasse EKG-Data für Peakfinder, die uns ermöglicht peaks zu finden
 
 class EKGdata:
+    '''
+    Beschreibt Objekte, die zu Personen gehören, Daten zu "Messwerte in mV" und "Zeit in ms" beinhalten
+    Durch klasseneigene Funktionen können die Daten geladen, Peaks gefunden und beide zusammen geplottet werden.
+    '''
     def __init__(self, ekg_dict):
         self.id = ekg_dict["id"]
         self.date = ekg_dict["date"]
         self.data = ekg_dict["result_link"]
         self.df = pd.read_csv(self.data, sep='\t', header=None, names=['Messwerte in mV','Zeit in ms',]) # EKG-Dateien kommen immer als .txt
-        self.plotted_length = None
         if len(self.df) *0.05 < 2000:
             self.plotted_length = 2000
         else:
-            self.plotted_length = int(len(self.df) *0.05)
+            self.plotted_length = int(len(self.df) *0.1)
         self.find_peaks()
-
 
 
     def find_peaks(self, threshold=0.95, min_peak_distance=10, plotted_length= None):
@@ -55,7 +57,8 @@ class EKGdata:
         '''
         # Erstellte einen Line Plot, der ersten 2000 Werte mit der Zeit auf der x-Achse
         fig = px.line(self.df.head(2000), x="Zeit in ms", y="Messwerte in mV")
-        peak_df = self.df.head(2000)[self.df["Peaks"].head(2000)]
+        peak_df = self.df.head(2000)
+        peak_df= peak_df[peak_df["Peaks"]]
 
         fig.add_scatter(
             x = peak_df["Zeit in ms"], 
@@ -67,43 +70,92 @@ class EKGdata:
         return fig
     
     def estimate_hr(self) -> list:
-        '''
-        Errechnet Herzfrequenz aus Peaks über Zeit
-        Eingabeparameter: self als DataFrame
-        Ausgabeparameter: Liste mit Herzfrequenzen
-        '''
-        peak_indices= self.find_peaks(self.df)
-        
-        hr_series = [None] * len(self.df)  # Leere Liste für Spalte
-        
-        delta_time_ms = self.df.loc[idx2, "Zeit in ms"] - self.df.loc[idx1, "Zeit in ms"]
-        delta_time_sec = delta_time_ms / 1000.0
+        """
+        Errechnet die Herzfrequenz (in bpm) aus dem Abstand zwischen R-Peaks.
+        Gibt eine Liste mit den geschätzten Werten zurück, wobei nur bei den Peaks ein Wert steht, sonst None.
+        """
+        # Hole die Indizes der gefundenen Peaks
+        peak_indices = self.df.index[self.df["Peaks"] == True].tolist()
+
+        # Leere Liste für alle Werte (gleiche Länge wie DataFrame)
+        hr_series = [None] * len(self.df)
+
+        if len(peak_indices) < 2:
+            print("Nicht genug Peaks gefunden für HR-Schätzung.")
+            self.df["Estimated HR"] = hr_series
+            return hr_series
 
         for i in range(1, len(peak_indices)):
             idx1 = peak_indices[i - 1]
             idx2 = peak_indices[i]
 
-            delta_time_sec = idx2- idx1
-            hr = 60 / delta_time_sec
+            # Zeit in Millisekunden → in Sekunden umrechnen
+            t1 = self.df.at[idx1, "Zeit in ms"]
+            t2 = self.df.at[idx2, "Zeit in ms"]
+            delta_time_sec = (t2 - t1) / 1000.0
 
-            hr_series[idx2] = hr
+            if delta_time_sec > 0:
+                hr = 60 / delta_time_sec
+                hr_series[idx2] = hr  # Setze den Wert nur beim zweiten Peak
 
+        # Füge Herzfrequenzspalte dem DataFrame hinzu
         self.df["Estimated HR"] = hr_series
         return hr_series
 
 
-def load_by_id(ekg_id):
-    '''
-    Erstellt EKG-Objekt aus Datenbank nach ID
-    Eingabeparameter: ID des gesuchten EKGs
-    Ausgabeparameter: gesuchtes EKG-Objekt
-    '''
-    ekg_by_id = None
+    def load_by_id(ekg_id):
+        '''
+        Erstellt EKG-Objekt aus Datenbank nach ID
+        Eingabeparameter: ID des gesuchten EKGs
+        Ausgabeparameter: gesuchtes EKG-Objekt
+        '''
+        ekg_by_id = None
 
-    person_data = Person.load_person_data()
-    for person in person_data:
-        for ekg_test in person["ekg_tests"]:
-            if int(ekg_id) == int(ekg_test["id"]):
-                ekg_by_id = EKGdata(ekg_test) 
-                return ekg_by_id
-    return ekg_by_id
+        person_data = Person.load_person_data()
+        for person in person_data:
+            for ekg_test in person["ekg_tests"]:
+                if int(ekg_id) == int(ekg_test["id"]):
+                    ekg_by_id = EKGdata(ekg_test) 
+                    return ekg_by_id
+        return ekg_by_id
+    
+if __name__ == "__main__":
+    # visualiesiert schonmal Werte, aber die sind so zusammengerückt, dass keine Zuordnung mehr zur eigentlichen Zeit besteht --> Anpassung nötig
+    import plotly.graph_objects as go
+    ekg1 = EKGdata.load_by_id(1)
+    ekg1.estimate_hr()
+    # Nur die Zeilen mit gültigem HR-Wert (nicht None) herausfiltern
+    valid_hr_df = ekg1.df[ekg1.df["Estimated HR"].notna()]
+
+    # Plot erstellen
+    fig = go.Figure()
+
+    # Optional: graue Hintergrundlinie für visuelle Referenz (komplett leere Zeitreihe)
+    fig.add_trace(go.Scatter(
+        x=ekg1.df["Zeit in ms"],
+        y=[None] * len(ekg1.df),
+        mode="lines",
+        name="HR (leer)",
+        line=dict(color='lightgray', dash='dot')
+    ))
+
+    # Streudiagramm für echte HR-Werte (z. B. an den Peaks)
+    fig.add_trace(go.Scatter(
+        x=valid_hr_df["Zeit in ms"],
+        y=valid_hr_df["Estimated HR"],
+        mode="markers+lines",  # nur Punkte: "markers", mit Linien: "markers+lines"
+        marker=dict(size=8, color="red"),
+        line=dict(color="red"),
+        name="Herzfrequenz (bpm)"
+    ))
+
+    # Achsentitel und Layout
+    fig.update_layout(
+        title="Herzfrequenz über Zeit (nur berechnet an Peaks)",
+        xaxis_title="Zeit in ms",
+        yaxis_title="Herzfrequenz (bpm)",
+        template="plotly_white"
+    )
+
+    fig.show()
+

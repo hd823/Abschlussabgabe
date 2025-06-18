@@ -2,7 +2,10 @@ import json
 import datetime as dt
 
 class Person:
-    
+    '''
+    Beschreibt Objekte, die EKG-Tests, ein Bild, ein Alter, ein Geschlecht usw haben.
+    Werden in JSON-Datei person_db.json gespeichert.
+    '''
     @staticmethod
     def load_person_data(FILE_PATH="data/person_db.json") -> list:
         """
@@ -94,6 +97,9 @@ class Person:
         self.gender = person_dict["gender"]
         self.id = person_dict["id"]
 
+        self.ekg_tests = person_dict.get("ekg_tests", []) 
+        self.ekg_tests_by_id = {str(ekg["id"]): ekg for ekg in self.ekg_tests}
+
         self.age = self.calc_age()
         self.max_hr = self.calc_max_hr()
 
@@ -106,4 +112,5 @@ if __name__ == "__main__":
     # print(Person.find_person_data_by_name("Huber, Julian"))
     # print(type(Person.load_person_data()))
     print(type(Person.find_person_data_by_name("Huber, Julian")))
-    print(type(Person.load_by_id(1)))
+    person1 = Person.load_by_id(1)
+    print(type(person1.ekg_tests))
