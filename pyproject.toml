@@ -5,7 +5,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "dh823", email = "dh8239@mci4me.at"},
 ]
-dependencies = ["streamlit>=1.45.1", "matplotlib>=3.10.3", "plotly>=6.1.2", "pandas>=2.3.0", "numpy>=2.3.0"]
+dependencies = ["streamlit>=1.45.1", "matplotlib>=3.10.3", "plotly>=6.1.2", "pandas>=2.3.0", "numpy>=2.3.0", "neurokit2>=0.2.11", "pywavelets>=1.8.0"]
 requires-python = "==3.13.*"
 readme = "README.md"
 license = {text = "MIT"}
@@ -13,3 +13,6 @@ license = {text = "MIT"}
 
 [tool.pdm]
 distribution = false
+
+[tool.pdm.scripts]
+streamlit = "python -m streamlit run main_streamlit_app.py"

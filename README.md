@@ -48,6 +48,7 @@ Die App dient zur Visualisierung von EKG-Daten und wurde als Streamlit-Anwendung
 
 ## Anwendung starten
 In der Powershell 'streamlit run main_streamlit_app.py' eingeben.
+Wenn der Fehler "no module named streamlit" ausgegeben wird, muss in der Powershell folgender Befehl zum Öffnen der Streamlit Applikation verwendet werden: "pdm run streamlit".
 Nach kurzer Ladezeit öffnet sich automatisch ein Browserfenster unter der URL "http://localhost:8501/" mit der App-Oberfläche. Falls Änderungen am Code vorgenommen werden, müssen diese gespeichert und die Streamlit-Seite im Browser neu geladen werden.
 
 

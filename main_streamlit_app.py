@@ -9,6 +9,7 @@ from source.ekg_data import EKGdata
 from source.person_class import Person
 import source.functions_Leistungskurve2 as functions_leistung2
 
+
 # Sicherstellen, dass auch vor der Nutzerauswahl schon ein Wert im SessionState ist
 if "aktuelle_versuchsperson" not in st.session_state:
     st.session_state.aktuelle_versuchsperson = "None"
@@ -70,6 +71,8 @@ with tab1:
     current_egk_data = EKGdata.load_by_id(selected_ekg_id)
     fig = current_egk_data.plot_time_series()
     st.plotly_chart(fig)
+
+
 
 with tab2:
     # Soll Assignemt 3 angezeigt werden?
