@@ -93,6 +93,7 @@ class Person:
         self.date_of_birth = person_dict["date_of_birth"]
         self.firstname = person_dict["firstname"]
         self.lastname = person_dict["lastname"]
+        self.name= f"{self.lastname}, {self.firstname}"
         self.picture_path = person_dict["picture_path"]
         self.gender = person_dict["gender"]
         self.id = person_dict["id"]
