@@ -5,7 +5,7 @@ import streamlit as st
 from PIL import Image
 
 from source.functions_hr_plot import analyse_heart_rate, plot_analysed_hr, calculate_time_per_zone
-from source.ekg_data import EKGdata
+from source.ekg_class import EKG
 from source.person_class import Person
 
 # Layout
@@ -78,7 +78,7 @@ with col1:
         selected_ekg_date = selected_ekg_date_str
 
         SAMPLING_RATE_HZ = 500
-        current_ekg_data = EKGdata.load_by_id(selected_ekg_id)
+        current_ekg_data = EKG.load_by_id(selected_ekg_id)
 
         if current_ekg_data:
             st.markdown(f"<b>Testdatum:</b> {selected_ekg_date}", unsafe_allow_html=True)

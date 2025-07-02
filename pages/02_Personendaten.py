@@ -1,8 +1,7 @@
 import streamlit as st
 import datetime as dt
 import os
-
-from source.ekg_data import EKGdata
+from source.ekg_class import EKG
 from source.person_class import Person
 
 # Pfad zur JSON-Datenbank
@@ -18,8 +17,8 @@ with tab1:
     # Formular zur Eingabe neuer Personendaten
     with st.form("person_form"):
         st.markdown("Pflichtfelder sind mit * markiert")
-        new_person_firstname = st.text_input("Vorname*", key="new_person_firstname").upper()
-        new_person_lastname = st.text_input("Nachname*", key="new_person_lastname").upper()
+        new_person_firstname = st.text_input("Vorname*", key="new_person_firstname").capitalize()
+        new_person_lastname = st.text_input("Nachname*", key="new_person_lastname").capitalize()
         new_person_date_of_birth = st.date_input("Geburtsdatum*", value=dt.date(2000, 1, 1), key="new_person_birthdate").year
         new_person_gender = st.selectbox("Geschlecht*", ["female", "male"], key="new_person_gender")
 
@@ -98,10 +97,17 @@ with tab1:
                                 "result_link": ftp_file_path
                             })
 
+                        for ekg in ekg_tests:
+                            valid_ekgs = EKG.validate_ekg_file(ekg["result_link"])
+                        if not valid_ekgs:
+                            st.error("Die hochgeladenen EKG-Dateien sind ungültig oder nicht lesbar.")
+                            st.stop()
+
+
                         neue_person = {
                             "id": new_id,
-                            "firstname": new_person_firstname.strip().upper(),
-                            "lastname": new_person_lastname.strip().upper(),
+                            "firstname": new_person_firstname.strip().capitalize(),
+                            "lastname": new_person_lastname.strip().capitalize(),
                             "date_of_birth": int(new_person_date_of_birth),
                             "picture_path": new_person_picture_path,
                             "gender": new_person_gender,
@@ -124,8 +130,8 @@ with tab2:
         with st.form("edit_person_form"):
             st.subheader("Personendaten bearbeiten")
 
-            edit_firstname = st.text_input("Vorname*", value=person_to_edit["firstname"]).upper()
-            edit_lastname = st.text_input("Nachname*", value=person_to_edit["lastname"]).upper()
+            edit_firstname = st.text_input("Vorname*", value=person_to_edit["firstname"]).capitalize()
+            edit_lastname = st.text_input("Nachname*", value=person_to_edit["lastname"]).capitalize()
 
             birth_year = person_to_edit.get("date_of_birth", 2000)
             birth_date = dt.date(birth_year, 1, 1)

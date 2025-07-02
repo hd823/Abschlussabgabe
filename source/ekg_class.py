@@ -9,7 +9,7 @@ from person_class import Person
 import neurokit2 as nk
 import numpy as np
 
-class EKGdata:
+class EKG:
     '''
     Beschreibt Objekte, die zu Personen gehören, Daten zu "Messwerte in mV" und "Zeit in ms" beinhalten
     Durch klasseneigene Funktionen können die Daten geladen, Peaks gefunden und beide zusammen geplottet werden.
@@ -137,6 +137,25 @@ class EKGdata:
         for person in person_data:
             for ekg_test in person["ekg_tests"]:
                 if int(ekg_id) == int(ekg_test["id"]):
-                    ekg_by_id = EKGdata(ekg_test) 
+                    ekg_by_id = EKG(ekg_test) 
                     return ekg_by_id
         return ekg_by_id
+    
+    @staticmethod
+    def validate_ekg_file(file_path):
+        try:
+            df = pd.read_csv(file_path, sep='\t', header=None)
+            if df.shape[1] != 2 or df.empty:
+                return False
+            
+            # Versuche, beide Spalten in numerische Werte umzuwandeln
+            df[0] = pd.to_numeric(df[0], errors='coerce')
+            df[1] = pd.to_numeric(df[1], errors='coerce')
+            
+            # Prüfe, ob nach der Umwandlung NaN-Werte vorkommen -> ungültig
+            if df[0].isna().any() or df[1].isna().any():
+                return False
+            return True
+        except Exception as e:
+            print(f"Fehler beim Validieren der EKG-Datei: {e}")
+            return False
