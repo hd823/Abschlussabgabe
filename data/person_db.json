@@ -2,8 +2,8 @@
     {
         "id": 1,
         "date_of_birth": 1989,
-        "firstname": "JULIAN",
-        "lastname": "HUBER",
+        "firstname": "Julian",
+        "lastname": "Huber",
         "picture_path": "data/pictures/tb.jpg",
         "gender": "male",
         "ekg_tests": [
