@@ -7,6 +7,7 @@ import streamlit as st
 import plotly.express as px
 from person_class import Person 
 import neurokit2 as nk
+import numpy as np
 
 class EKGdata:
     '''
