@@ -77,11 +77,12 @@ class Person:
         '''
         Erstellt ein Personen-Objekt anhand der übergebenen ID und der Personendatenbank
         Eingabeparameter: ID
-        Ausgabeparameter: Objekt der Klasse Person
+        Ausgabeparameter: Objekt der Klasse Person nach ID
         '''
         Person_aus_id = None
 
         person_data = Person.load_person_data(FILE_PATH)
+
         for person in person_data:
             if person_id == int(person["id"]):
                 Person_aus_id = Person(person)
@@ -103,15 +104,3 @@ class Person:
 
         self.age = self.calc_age()
         self.max_hr = self.calc_max_hr()
-
-
-if __name__ == "__main__":
-    # print("This is a module with some functions to read the person data")
-    # persons = Person.load_person_data()
-    # person_names = Person.get_person_list(persons)
-    # print(person_names)
-    # print(Person.find_person_data_by_name("Huber, Julian"))
-    # print(type(Person.load_person_data()))
-    print(type(Person.find_person_data_by_name("Huber, Julian")))
-    person1 = Person.load_by_id(1)
-    print(type(person1.ekg_tests))
