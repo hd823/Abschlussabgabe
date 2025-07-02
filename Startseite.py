@@ -7,6 +7,8 @@ from PIL import Image
 from source.ekg_class import EKG
 from source.person_class import Person
 
+from source.streamlit_func import enforce_fixed_window_range
+
 # Layout
 st.set_page_config(layout="wide")
 
@@ -51,7 +53,6 @@ with col1:
             img = Image.open(f)
             st.image(img, width=200, caption=st.session_state.aktuelle_versuchsperson)
     else:
-        # Fallback-Bild, wenn kein Bildpfad vorhanden oder gültig ist
         placeholder_path = "data/pictures/none.jpg"
         if os.path.exists(placeholder_path):
             with open(placeholder_path, "rb") as f:
@@ -104,6 +105,7 @@ with col2:
         st.markdown(f"Die aktuelle Fenstergröße beträgt: <b>{fenster_groesse_sekunden} Sekunden</b>.", unsafe_allow_html=True)
         st.markdown("Verwenden Sie den Schieberegler unten, um den Zeitabschnitt anzupassen.")
 
+        # Initialisiere current_window_start_s und current_window_end_s, falls nicht vorhanden oder EKG gewechselt
         if 'current_window_start_s' not in st.session_state or \
            'current_window_end_s' not in st.session_state or \
            st.session_state.get('last_ekg_id_for_slider') != selected_ekg_id:
@@ -117,38 +119,14 @@ with col2:
                     st.session_state.current_window_start_s = min_gesamt_sekunden
             st.session_state.last_ekg_id_for_slider = selected_ekg_id
 
-        def enforce_fixed_window_range():
-            slider_start, slider_end = st.session_state.slider_window_range
-            fixed_width = st.session_state.fixed_window_size_s
-            max_total_s = max_gesamt_sekunden
-            min_total_s = min_gesamt_sekunden
-            current_slider_width = slider_end - slider_start
+        # Initialisiere slider_window_range, wenn noch nicht vorhanden
+        if "slider_window_range" not in st.session_state:
+            st.session_state.slider_window_range = (
+                st.session_state.current_window_start_s,
+                st.session_state.current_window_end_s
+            )
 
-            if abs(current_slider_width - fixed_width) > 0.001:
-                if slider_end > max_total_s:
-                    new_end = max_total_s
-                    new_start = max(min_total_s, new_end - fixed_width)
-                elif slider_start < min_total_s:
-                    new_start = min_total_s
-                    new_end = min(max_total_s, new_start + fixed_width)
-                elif abs(slider_end - (st.session_state.current_window_start_s + fixed_width)) > abs(slider_start - st.session_state.current_window_start_s):
-                    new_end = slider_end
-                    new_start = new_end - fixed_width
-                    if new_start < min_total_s:
-                        new_start = min_total_s
-                        new_end = new_start + fixed_width
-                else:
-                    new_start = slider_start
-                    new_end = new_start + fixed_width
-                    if new_end > max_total_s:
-                        new_end = max_total_s
-                        new_start = new_end - fixed_width
-
-                st.session_state.current_window_start_s = new_start
-                st.session_state.current_window_end_s = new_end
-            else:
-                st.session_state.current_window_start_s = slider_start
-                st.session_state.current_window_end_s = slider_end
+        enforce_fixed_window_range(max_gesamt_sekunden, min_gesamt_sekunden)
 
         if fenster_groesse_sekunden >= max_gesamt_sekunden:
             st.warning(f"Die definierte Fenstergröße ({fenster_groesse_sekunden:.1f}s) ist gleich oder größer als die gesamte Testdauer ({max_gesamt_sekunden:.1f}s).")
@@ -171,11 +149,12 @@ with col2:
                 "Wählen Sie das Ansichtsfenster (in Sekunden):",
                 min_value=min_gesamt_sekunden,
                 max_value=max_gesamt_sekunden,
-                value=(st.session_state.current_window_start_s, st.session_state.current_window_end_s),
+                value=st.session_state.slider_window_range,
                 step=0.1,
                 format="%.1f s",
                 key="slider_window_range",
-                on_change=enforce_fixed_window_range
+                on_change=enforce_fixed_window_range,
+                args=(max_gesamt_sekunden, min_gesamt_sekunden)
             )
             start_des_fensters_sekunden = st.session_state.current_window_start_s
             ende_des_fensters_sekunden = st.session_state.current_window_end_s
@@ -186,7 +165,7 @@ with col2:
         st.markdown("Tipp: Zum Einstellen linke Maustaste drücken und nach rechts ziehen.")
 
         col_hr1, col_hr2 = st.columns(2)
-        
+
         with col_hr1:
             st.metric("Durchschnittliche Herzfrequenz (gesamt)", f"{current_ekg_data.estimate_hr():.2f} bpm")
         with col_hr2:
