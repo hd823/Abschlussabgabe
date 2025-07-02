@@ -76,7 +76,7 @@ with tab1:
                         next_ekg_id = max(all_ekg_ids, default=0) + 1
 
                         if new_person_ekg_file:
-                            ekg_file_path = f"data/ekg_files/{new_id}_{new_person_ekg_file.name}"
+                            ekg_file_path = f"data/ekg_files/{next_ekg_id}_{new_person_ekg_file.name}"
                             with open(ekg_file_path, "wb") as f:
                                 f.write(new_person_ekg_file.getbuffer())
 
@@ -88,7 +88,7 @@ with tab1:
                             next_ekg_id += 1
 
                         if new_person_ftp_file:
-                            ftp_file_path = f"data/ftp_tests/{new_id}_{new_person_ftp_file.name}"
+                            ftp_file_path = f"data/ftp_tests/{next_ekg_id}_{new_person_ftp_file.name}"
                             with open(ftp_file_path, "wb") as f:
                                 f.write(new_person_ftp_file.getbuffer())
 

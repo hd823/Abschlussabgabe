@@ -106,7 +106,10 @@ class Person:
         self.firstname = person_dict["firstname"]
         self.lastname = person_dict["lastname"]
         self.name= f"{self.lastname}, {self.firstname}"
-        self.picture_path = person_dict["picture_path"]
+        if "picture_path" not in person_dict:
+            self.picture_path = "data/pictures/none.jpg"
+        else:
+            self.picture_path = person_dict["picture_path"]
         self.gender = person_dict["gender"]
         self.id = person_dict["id"]
 

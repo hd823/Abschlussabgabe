@@ -48,14 +48,5 @@
                 "result_link": "data/ekg_data/03_Ruhe.txt"
             }
         ]
-    },
-    {
-        "id": 4,
-        "firstname": "HU",
-        "lastname": "DO",
-        "date_of_birth": 2000,
-        "picture_path": "",
-        "gender": "female",
-        "ekg_tests": []
     }
 ]

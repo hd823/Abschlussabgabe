@@ -30,7 +30,7 @@ with st.sidebar:
     )
 
 # Person laden
-st.session_state.picture_path = "data/pictures/placeholder.jpg"
+st.session_state.picture_path = "data/pictures/none.jpg"
 if st.session_state.aktuelle_versuchsperson in name_list:
     person_data_dict = Person.find_person_data_by_name(st.session_state.aktuelle_versuchsperson)
     if person_data_dict and "picture_path" in person_data_dict:
@@ -46,7 +46,21 @@ col1, col2 = st.columns([1, 2])
 # LINKE SPALTE: Bild + Daten + Testauswahl
 with col1:
     st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-    st.image(Image.open(st.session_state.picture_path), width=200, caption=st.session_state.aktuelle_versuchsperson)
+
+    if st.session_state.picture_path and os.path.exists(st.session_state.picture_path):
+        with open(st.session_state.picture_path, "rb") as f:
+            img = Image.open(f)
+            st.image(img, width=200, caption=st.session_state.aktuelle_versuchsperson)
+    else:
+        # Fallback-Bild, wenn kein Bildpfad vorhanden oder gültig ist
+        placeholder_path = "data/pictures/none.jpg"
+        if os.path.exists(placeholder_path):
+            with open(placeholder_path, "rb") as f:
+                img = Image.open(f)
+                st.image(img, width=200, caption=st.session_state.aktuelle_versuchsperson)
+        else:
+            st.warning("Kein Bild vorhanden und Platzhalterbild nicht gefunden.")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.write("ID der Versuchsperson ist:", person_data_dict["id"])
@@ -69,6 +83,9 @@ with col1:
         if current_ekg_data:
             st.markdown(f"<b>Erstelldatum:</b> {selected_ekg_date}", unsafe_allow_html=True)
             st.markdown(f"<b>Dauer:</b> {round(len(current_ekg_data.df) / (500*60))} Minuten", unsafe_allow_html=True)
+    else:
+        st.warning(f"😴 Für **{st.session_state.aktuelle_versuchsperson}** wurde kein EKG-Test gefunden. "
+                   "Hier könnten Ihre EKG-Daten stehen.")
 
 # RECHTE SPALTE: EKG-Analyse
 with col2:
