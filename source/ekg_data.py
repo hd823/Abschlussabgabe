@@ -11,8 +11,8 @@ import numpy as np
 
 class EKGdata:
     '''
-    Beschreibt Objekte, die zu Personen gehören, Daten zu "Messwerte in mV" und "Zeit in ms" beinhalten
-    Durch klasseneigene Funktionen können die Daten geladen, Peaks gefunden und beide zusammen geplottet werden.
+    Klasse zur Verarbeitung und Analyse von EKG-Daten.
+    Enthält Methoden zur Peak-Erkennung, Herzfrequenzschätzung und grafischen Darstellung.
     '''
     def __init__(self, ekg_dict,):
         self.id = ekg_dict["id"]
@@ -26,15 +26,20 @@ class EKGdata:
         self.set_peaks()
         
     def find_peaks(self):
-
+        """
+        Findet R-Peaks in den EKG-Daten mit Hilfe von NeuroKit2.
+        Eingabeparameter: keine
+        Ausgabeparameter: Dictionary mit Peak-Informationen
+        """
         df_ekg_subset = self.df.copy()
-
         info = nk.ecg_findpeaks(df_ekg_subset["Messwerte in mV"], sampling_rate=500, show=False)
         return info
 
     def set_peaks(self):
         """
-        Findet Peaks in der EKG-Datenreihe und speichert sie im DataFrame.
+        Weist den gefundenen R-Peaks im DataFrame die Spalte 'Peaks' zu.
+        Eingabeparameter: keine
+        Ausgabeparameter: keine (internes Setzen der Peaks)
         """
         info = self.find_peaks()
 
@@ -45,20 +50,16 @@ class EKGdata:
         else:
             print(f"Keine R-Peaks für EKG ID {self.id} gefunden. 'Peaks'-Spalte bleibt 0.")
 
-
     def plot_time_series(self, start_s=None, end_s=None):
         '''
-        Plottet DataFrame, also Messwerte in mV über die Zeit in s
-        Eingabeparameter: self, optional start_s (Sekunden), optional end_s (Sekunden)
-        Ausgabeparameter: Diagramm Messwerte über Zeit
+        Plottet DataFrame, also Messwerte in mV über die Zeit in s.
+        Eingabeparameter: optional start_s (Sekunden), optional end_s (Sekunden)
+        Ausgabeparameter: Plotly-Diagramm (Figure)
         '''
-
         df_to_plot = self.df.copy()
 
         if start_s is not None and end_s is not None:
             df_to_plot = df_to_plot[(df_to_plot["Zeit in s"] >= start_s) & (df_to_plot["Zeit in s"] <= end_s)]
-        else:
-            pass
         
         if df_to_plot.empty:
             st.warning("Keine Daten im ausgewählten Zeitbereich gefunden. Bitte passen Sie den Bereich an.")
@@ -86,11 +87,11 @@ class EKGdata:
     
     def estimate_hr(self, start_s=None, end_s=None):
         """
-        Schätzt die Herzfrequenz in bpm auf Basis der in self.df gespeicherten Peaks.
-        Optional kann ein Zeitbereich in Sekunden angegeben werden.
+        Schätzt die Herzfrequenz (in bpm) basierend auf den gefundenen Peaks in einem optionalen Zeitbereich.
+        Eingabeparameter: start_s (float, optional), end_s (float, optional)
+        Ausgabeparameter: Herzfrequenz in bpm (float) oder None bei zu wenig Daten
         """
         if start_s is None and end_s is None:
-            # Wenn kein Zeitbereich angegeben ist, gesamtes DataFrame verwenden
             start_s = self.df["Zeit in s"].min()
             end_s = self.df["Zeit in s"].max()
 
@@ -100,37 +101,30 @@ class EKGdata:
             st.warning("Keine EKG-Daten verfügbar, um die Herzfrequenz zu schätzen.")
             return None
 
-        # Falls Zeitbereich angegeben ist, DataFrame filtern
         if start_s is not None:
             df = df[df["Zeit in s"] >= start_s]
         if end_s is not None:
             df = df[df["Zeit in s"] <= end_s]
 
-        # Filtere nur Zeilen mit erkannten Peaks
         peak_df = df[df["Peaks"] == 1]
 
-        # Prüfen, ob genügend Peaks vorhanden sind
         if len(peak_df) < 2:
-            return None  # Zu wenig Daten für Berechnung
+            return None
 
-        # Zeitstempel der Peaks extrahieren
         time_stamps = peak_df["Zeit in ms"].values
-        rr_intervals = np.diff(time_stamps)  # in ms
+        rr_intervals = np.diff(time_stamps)
 
         avg_rr = np.mean(rr_intervals)
-
-        hr_bpm = 60000 / avg_rr  # Umrechnung in bpm
+        hr_bpm = 60000 / avg_rr
 
         return round(hr_bpm, 2)
-
-
 
     @staticmethod
     def load_by_id(ekg_id):
         '''
-        Erstellt EKG-Objekt aus Datenbank nach ID
+        Erstellt EKG-Objekt aus Datenbank nach ID.
         Eingabeparameter: ID des gesuchten EKGs
-        Ausgabeparameter: gesuchtes EKG-Objekt
+        Ausgabeparameter: EKGdata-Objekt oder None
         '''
         ekg_by_id = None
 

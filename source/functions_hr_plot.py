@@ -6,9 +6,11 @@ import plotly.figure_factory as ff
 
 def analyse_heart_rate(FILE_PATH = "data/activity.csv", max_hr = 200):
     '''
-    Liest CSV-Datei in ein DataFrame ein und fügt Spalte mit Heartrate hinzu
-    Eingabeparameter: FILE_PATH : Pfad zur Datei, max_hr
-    Ausgabeparameter: DataFrame mit angehängten Heartratezones
+    Analysiert Herzfrequenzdaten und ordnet sie Herzfrequenzzonen zu.
+    Eingabeparameter: 
+        FILE_PATH (str): Pfad zur CSV-Datei
+        max_hr (int): Maximale Herzfrequenz
+    Ausgabeparameter: DataFrame mit Spalte 'CurrentZone'
     '''
     df_hr = pd.read_csv(FILE_PATH)
 
@@ -38,20 +40,17 @@ def analyse_heart_rate(FILE_PATH = "data/activity.csv", max_hr = 200):
 
 def plot_analysed_hr(df_hr, max_hr = 200):
     '''
-    Erstellt aus einem DataFrame ein Diagramm, welches die Herzfrequenz und die Leistung über die Zeit aufträgt
-    Eingabeparameter: aufbereitetes Dataframe aus analyse_heart_rate(), max_hr
-    Ausgabeparameter: Scatterplot
+    Erstellt ein kombiniertes Diagramm der Herzfrequenz und Leistung über die Zeit.
+    Eingabeparameter: 
+        df_hr (DataFrame): Ergebnis aus analyse_heart_rate
+        max_hr (int): Maximale Herzfrequenz
+    Ausgabeparameter: Plotly-Figure-Objekt
     '''
-    # Unbedingt nötig, damit Plotly die Zeitachse korrekt anzeigt
     df_hr["Time"] = df_hr.index 
-    # Zeit in Minuten als neue Spalte
     df_hr["Time_min"] = df_hr["Time"] / 60
-
-    # Basis-Plot für HeartRate
 
     fig1 = go.Figure()
 
-    # HeartRate-Linie (linke Y-Achse)
     fig1.add_trace(go.Scatter(
         x=df_hr["Time_min"],
         y=df_hr["HeartRate"],
@@ -60,7 +59,6 @@ def plot_analysed_hr(df_hr, max_hr = 200):
         yaxis="y1"
     ))
 
-    # Power-Linie (rechte Y-Achse)
     fig1.add_trace(go.Scatter(
         x=df_hr["Time_min"],
         y=df_hr["PowerOriginal"],
@@ -69,7 +67,6 @@ def plot_analysed_hr(df_hr, max_hr = 200):
         yaxis="y2"
     ))
 
-    # Layout für zwei Y-Achsen
     fig1.update_layout(
         title="Heart Rate and Power over Time",
         xaxis=dict(
@@ -78,19 +75,19 @@ def plot_analysed_hr(df_hr, max_hr = 200):
             tickvals=[0, 5, 10, 15, 20, 25, 30],
             ticktext=["0", "5", "10", "15", "20", "25", "30"],
             range=[0, 30],
-            showgrid=False  # Entfernt vertikale Gridlines auf linker Achse
+            showgrid=False
         ),
         yaxis=dict(
             title="Heart Rate (bpm)",
             range=[80, max_hr],
-            showgrid=False  # Entfernt horizontale Gridlines
+            showgrid=False
         ),
         yaxis2=dict(
             title="Power (W)",
             overlaying="y",
             side="right",
             range=[0, 440],
-            showgrid=False  # Entfernt horizontale Gridlines auf rechter Achse
+            showgrid=False
         ),
         legend=dict(
             x=0.01, y=0.99,
@@ -98,7 +95,6 @@ def plot_analysed_hr(df_hr, max_hr = 200):
         )
     )
 
-    # einfärben: Zone 1
     fig1.add_shape(
         type="rect",
         xref="paper", yref="y",
@@ -106,7 +102,6 @@ def plot_analysed_hr(df_hr, max_hr = 200):
         fillcolor="rgba(173,216,230,0.2)", opacity=0.99, layer="below", line_width=0
     )
 
-    # einfärben: Zone 2
     fig1.add_shape(
         type="rect",
         xref="paper", yref="y",
@@ -114,7 +109,6 @@ def plot_analysed_hr(df_hr, max_hr = 200):
         fillcolor="rgba(144,238,144,0.2)", opacity=0.99, layer="below", line_width=0
     )
 
-    # einfärben: Zone 3
     fig1.add_shape(
         type="rect",
         xref="paper", yref="y",
@@ -122,7 +116,6 @@ def plot_analysed_hr(df_hr, max_hr = 200):
         fillcolor="rgba(255,255,102,0.2)", opacity=0.99, layer="below", line_width=0
     )
 
-    # einfärben: Zone 4, 
     fig1.add_shape(
         type="rect",
         xref="paper", yref="y",
@@ -130,7 +123,6 @@ def plot_analysed_hr(df_hr, max_hr = 200):
         fillcolor="rgba(255,165,0,0.2)", opacity=0.99, layer="below", line_width=0
     )
 
-    # einfärben: Zone 5
     fig1.add_shape(
         type="rect",
         xref="paper", yref="y",
@@ -141,11 +133,12 @@ def plot_analysed_hr(df_hr, max_hr = 200):
 
 def calculate_time_per_zone(df_hr):
     '''
-    Erstellt Tabelle aus DataFrame aus analyse_heart_rate mit Zeiten in verschiedenen Herzfrequenzzonen
-    Eingabeparameter: aufbereitetes DataFrame aus analyse_heart_rate
-    Ausgabeparameter: Tabelle
+    Berechnet die verbrachte Zeit und durchschnittliche Leistung pro Herzfrequenzzone.
+    Eingabeparameter: 
+        df_hr (DataFrame): Ergebnis aus analyse_heart_rate
+    Ausgabeparameter: Plotly-Tabelle mit Zeit und Leistung je Zone
     '''
-    zones = ["Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5"]  # explizit definieren
+    zones = ["Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5"]
     zone_counts = df_hr["CurrentZone"].value_counts().reindex(zones, fill_value=0)
     time_per_zone = zone_counts.rename("Anzahl Messpunkte").to_frame()
     time_per_zone["Zeit [s]"] = time_per_zone["Anzahl Messpunkte"]
@@ -157,7 +150,6 @@ def calculate_time_per_zone(df_hr):
 
     fig = ff.create_table(time_per_zone)
     return fig
-
 
 if __name__ == "__main__":
     my_fig = plot_analysed_hr(analyse_heart_rate(),)
