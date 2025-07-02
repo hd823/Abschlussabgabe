@@ -174,9 +174,16 @@ if len(session_state_person_obj.ekg_tests) > 0:
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.markdown("Hier Gesamte Herzfrequenz anzeigen lassen")
+        st.markdown("Durchschnitts-Herzfrequenz über gesamten EKG-Test:")
+        if current_ekg_data:
+            average_hr = current_ekg_data.estimate_hr()
+            st.markdown(f"{average_hr:.2f} bpm")
+        else:
+            st.warning("Keine EKG-Daten verfügbar, um die Herzfrequenz zu schätzen.")
     with col2:
-        st.markdown("Hier Herzfrequenz im aktuellen Zeitfenster anzeigen lassen")
-
+        st.markdown("Durchschnitts-Herzfrequenz über ausgewählten EKG-Test-Zeitraum:")
+        if current_ekg_data:
+            average_hr = current_ekg_data.estimate_hr(start_s=start_des_fensters_sekunden, end_s=ende_des_fensters_sekunden)
+            st.markdown(f"{average_hr:.2f} bpm")
 else:
     st.info("Für die ausgewählte Person sind keine EKG-Tests verfügbar.")

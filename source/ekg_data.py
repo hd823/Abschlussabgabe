@@ -82,25 +82,45 @@ class EKGdata:
 
         return fig
     
-    def estimate_hr(self, threshold, respacing_factor=5):
-        
-        peaks = self.find_peaks(threshold, respacing_factor)
+    def estimate_hr(self, start_s=None, end_s=None):
+        """
+        Schätzt die Herzfrequenz in bpm auf Basis der in self.df gespeicherten Peaks.
+        Optional kann ein Zeitbereich in Sekunden angegeben werden.
+        """
+        if start_s is None and end_s is None:
+            # Wenn kein Zeitbereich angegeben ist, gesamtes DataFrame verwenden
+            start_s = self.df["Zeit in s"].min()
+            end_s = self.df["Zeit in s"].max()
+
+        df = self.df.copy()
+
+        if self.df.empty:
+            st.warning("Keine EKG-Daten verfügbar, um die Herzfrequenz zu schätzen.")
+            return None
+
+        # Falls Zeitbereich angegeben ist, DataFrame filtern
+        if start_s is not None:
+            df = df[df["Zeit in s"] >= start_s]
+        if end_s is not None:
+            df = df[df["Zeit in s"] <= end_s]
+
+        # Filtere nur Zeilen mit erkannten Peaks
+        peak_df = df[df["Peaks"] == 1]
 
         # Prüfen, ob genügend Peaks vorhanden sind
-        if len(peaks) < 2:
+        if len(peak_df) < 2:
             return None  # Zu wenig Daten für Berechnung
 
-        # Berechne Zeitabstände zwischen den Peaks mit numpy
-        time_stamps = self.df.iloc[peaks]['Zeit in ms'].values
+        # Zeitstempel der Peaks extrahieren
+        time_stamps = peak_df["Zeit in ms"].values
         rr_intervals = np.diff(time_stamps)  # in ms
 
-        # Durchschnittliches RR-Intervall in Millisekunden
         avg_rr = np.mean(rr_intervals)
 
-        # Herzfrequenz in bpm berechnen
-        hr_bpm = 60000 / avg_rr  # 60.000 ms pro Minute
+        hr_bpm = 60000 / avg_rr  # Umrechnung in bpm
 
         return round(hr_bpm, 2)
+
 
 
     @staticmethod
