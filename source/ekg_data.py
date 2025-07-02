@@ -81,38 +81,25 @@ class EKGdata:
 
         return fig
     
-    def estimate_hr(self) -> list:
-        """
-        Errechnet die Herzfrequenz (in bpm) aus dem Abstand zwischen R-Peaks.
-        Gibt eine Liste mit den geschätzten Werten zurück, wobei nur bei den Peaks ein Wert steht, sonst None.
-        """
-        # Hole die Indizes der gefundenen Peaks
-        peak_indices = self.df.index[self.df["Peaks"] == True].tolist()
+    def estimate_hr(self):
+        
+        peaks = self.find_peaks(self)
 
-        # Leere Liste für alle Werte (gleiche Länge wie DataFrame)
-        hr_series = [None] * len(self.df)
+        # Prüfen, ob genügend Peaks vorhanden sind
+        if len(peaks) < 2:
+            return None  # Zu wenig Daten für Berechnung
 
-        if len(peak_indices) < 2:
-            print("Nicht genug Peaks gefunden für HR-Schätzung.")
-            self.df["Estimated HR"] = hr_series
-            return hr_series
+        # Berechne Zeitabstände zwischen den Peaks mit numpy
+        time_stamps = self.df.iloc[peaks]['Zeit in ms'].values
+        rr_intervals = np.diff(time_stamps)  # in ms
 
-        for i in range(1, len(peak_indices)):
-            idx1 = peak_indices[i - 1]
-            idx2 = peak_indices[i]
+        # Durchschnittliches RR-Intervall in Millisekunden
+        avg_rr = np.mean(rr_intervals)
 
-            # Zeit in Millisekunden → in Sekunden umrechnen
-            t1 = self.df.at[idx1, "Zeit in ms"]
-            t2 = self.df.at[idx2, "Zeit in ms"]
-            delta_time_sec = (t2 - t1) / 1000
+        # Herzfrequenz in bpm berechnen
+        hr_bpm = 60000 / avg_rr  # 60.000 ms pro Minute
 
-            if delta_time_sec > 0:
-                hr = 60 / delta_time_sec
-                hr_series[idx2] = hr   # Setze den Wert nur beim zweiten Peak
-
-        # Füge Herzfrequenzspalte dem DataFrame hinzu
-        self.df["Estimated HR"] = hr_series
-        return hr_series
+        return round(hr_bpm, 2)
 
 
     @staticmethod
