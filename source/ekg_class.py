@@ -9,7 +9,7 @@ from person_class import Person
 import neurokit2 as nk
 import numpy as np
 
-class EKGdata:
+class EKG:
     '''
     Klasse zur Verarbeitung und Analyse von EKG-Daten.
     Enthält Methoden zur Peak-Erkennung, Herzfrequenzschätzung und grafischen Darstellung.
@@ -124,7 +124,7 @@ class EKGdata:
         '''
         Erstellt EKG-Objekt aus Datenbank nach ID.
         Eingabeparameter: ID des gesuchten EKGs
-        Ausgabeparameter: EKGdata-Objekt oder None
+        Ausgabeparameter: EKG-Objekt oder None
         '''
         ekg_by_id = None
 
@@ -133,6 +133,6 @@ class EKGdata:
         for person in person_data:
             for ekg_test in person["ekg_tests"]:
                 if int(ekg_id) == int(ekg_test["id"]):
-                    ekg_by_id = EKGdata(ekg_test) 
+                    ekg_by_id = EKG(ekg_test) 
                     return ekg_by_id
         return ekg_by_id
