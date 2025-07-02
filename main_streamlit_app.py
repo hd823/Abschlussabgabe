@@ -50,9 +50,9 @@ with col2:
     with innercol2:
         st.markdown(st.session_state.aktuelle_versuchsperson)
         if 'person_data_dict' in locals() and person_data_dict:
-            st.markdown("ID der Versuchsperson ist: ", person_data_dict["id"])
-            st.markdown("Alter der Versuchsperson ist: ", Person.calc_age(session_state_person_obj))
-            st.markdown("Maximale Herzfrequenz der Versuchsperson ist: ", Person.calc_max_hr(session_state_person_obj))
+            st.write("ID der Versuchsperson ist: ", person_data_dict["id"])
+            st.write("Alter der Versuchsperson ist: ", Person.calc_age(session_state_person_obj))
+            st.write("Maximale Herzfrequenz der Versuchsperson ist: ", Person.calc_max_hr(session_state_person_obj))
 
 
 st.markdown("## EKG-Daten der Versuchsperson")
