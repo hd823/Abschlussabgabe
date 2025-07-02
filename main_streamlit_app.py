@@ -50,9 +50,9 @@ with col2:
     with innercol2:
         st.markdown(st.session_state.aktuelle_versuchsperson)
         if 'person_data_dict' in locals() and person_data_dict:
-            st.markdown("ID der Versuchsperson ist: ", person_data_dict["id"])
-            st.markdown("Alter der Versuchsperson ist: ", Person.calc_age(session_state_person_obj))
-            st.markdown("Maximale Herzfrequenz der Versuchsperson ist: ", Person.calc_max_hr(session_state_person_obj))
+            st.write("ID der Versuchsperson ist: ", person_data_dict["id"])
+            st.write("Alter der Versuchsperson ist: ", Person.calc_age(session_state_person_obj))
+            st.write("Maximale Herzfrequenz der Versuchsperson ist: ", Person.calc_max_hr(session_state_person_obj))
 
 
 st.markdown("## EKG-Daten der Versuchsperson")
@@ -170,7 +170,20 @@ if len(session_state_person_obj.ekg_tests) > 0:
 
     else:
         st.error("Fehler beim Laden der EKG-Daten für den ausgewählten Test.")
-    
     st.markdown("Zum Näheren Auswählen des geplotteten Zeitbereichs kann mit Doppelklick und Ziehen in horizontale Richtung (relativ genau) ein Bereich ausgewählt werden.")
+
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.markdown("Durchschnitts-Herzfrequenz über gesamten EKG-Test:")
+        if current_ekg_data:
+            average_hr = current_ekg_data.estimate_hr()
+            st.markdown(f"{average_hr:.2f} bpm")
+        else:
+            st.warning("Keine EKG-Daten verfügbar, um die Herzfrequenz zu schätzen.")
+    with col2:
+        st.markdown("Durchschnitts-Herzfrequenz über ausgewählten EKG-Test-Zeitraum:")
+        if current_ekg_data:
+            average_hr = current_ekg_data.estimate_hr(start_s=start_des_fensters_sekunden, end_s=ende_des_fensters_sekunden)
+            st.markdown(f"{average_hr:.2f} bpm")
 else:
     st.info("Für die ausgewählte Person sind keine EKG-Tests verfügbar.")
