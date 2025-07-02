@@ -53,6 +53,14 @@ class Person:
                 return eintrag
         return None
     
+    @staticmethod
+    def safe_person_data(data, FILE_PATH = "data/person_db.json"):
+        """
+        Speichert die übergebenen Personendaten in der JSON-Datei.
+        """
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    
     def calc_age(self) -> int:
         """
         Berechnet das Alter eines Personenobjekts basierend auf dem Geburtsjahr
