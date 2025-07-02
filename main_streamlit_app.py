@@ -13,7 +13,7 @@ st.set_page_config(layout="wide")
 
 # SIDEBAR – nur Auswahl
 with st.sidebar:
-    st.title("EKG App")
+    st.title("EKG Analyse App")
     FILE_PATH = "data/person_db.json"
     user_data = Person.load_person_data(FILE_PATH)
     name_list = Person.get_person_list(user_data)
@@ -21,8 +21,8 @@ with st.sidebar:
     if "aktuelle_versuchsperson" not in st.session_state:
         st.session_state.aktuelle_versuchsperson = "None"
 
-    st.markdown("## Versuchsperson auswählen")
-    st.markdown("Bitte wählen Sie eine Versuchsperson aus der Liste aus.")
+    st.markdown("## Versuchsperson")
+    st.markdown("Wählen Sie eine Person aus der Liste aus:")
     st.session_state.aktuelle_versuchsperson = st.selectbox(
         'Versuchsperson',
         options=name_list,
@@ -49,11 +49,11 @@ with col1:
     st.image(Image.open(st.session_state.picture_path), width=200, caption=st.session_state.aktuelle_versuchsperson)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.write("ID der Versuchsperson ist:", person_data_dict["id"])
-    st.write("Alter der Versuchsperson ist:", Person.calc_age(session_state_person_obj))
-    st.write("Maximale Herzfrequenz der Versuchsperson ist:", Person.calc_max_hr(session_state_person_obj))
+    st.write("Versuchsperson-ID:", person_data_dict["id"])
+    st.write("Alter:", Person.calc_age(session_state_person_obj), "Jahre")
+    st.write("Maximale Herzfrequenz:", Person.calc_max_hr(session_state_person_obj), "bpm")
 
-    st.markdown("### 📊 <b>EKG-Daten</b>", unsafe_allow_html=True)
+    st.markdown("### 📊 <b>EKG-Testdaten</b>", unsafe_allow_html=True)
 
     if len(session_state_person_obj.ekg_tests) > 0:
         personal_ekg_list = [f"{ekg['id']}, Datum: {ekg['date']}" for ekg in session_state_person_obj.ekg_tests]
@@ -67,13 +67,13 @@ with col1:
         current_ekg_data = EKGdata.load_by_id(selected_ekg_id)
 
         if current_ekg_data:
-            st.markdown(f"<b>Erstelldatum:</b> {selected_ekg_date}", unsafe_allow_html=True)
-            st.markdown(f"<b>Dauer:</b> {round(len(current_ekg_data.df) / (500*60))} Minuten", unsafe_allow_html=True)
+            st.markdown(f"<b>Testdatum:</b> {selected_ekg_date}", unsafe_allow_html=True)
+            st.markdown(f"<b>Testdauer:</b> {round(len(current_ekg_data.df) / (500*60))} Minuten", unsafe_allow_html=True)
 
 # RECHTE SPALTE: EKG-Analyse
 with col2:
     if 'current_ekg_data' in locals() and current_ekg_data:
-        st.subheader("EKG-Signal Ansichtsfenster")
+        st.subheader("EKG-Signalanalyse")
 
         total_data_points = len(current_ekg_data.df)
         max_gesamt_sekunden = total_data_points / SAMPLING_RATE_HZ
@@ -85,8 +85,8 @@ with col2:
         )
         st.session_state.fixed_window_size_s = fenster_groesse_sekunden
 
-        st.markdown(f"Die Fenstergröße beträgt {fenster_groesse_sekunden} Sekunden.")
-        st.markdown("Sobald am Schieberegler der Zeitausschnitt geändert wird, wird auch die Fenstergröße angepasst.")
+        st.markdown(f"Die aktuelle Fenstergröße beträgt: <b>{fenster_groesse_sekunden} Sekunden</b>.", unsafe_allow_html=True)
+        st.markdown("Verwenden Sie den Schieberegler unten, um den Zeitabschnitt anzupassen.")
 
         if 'current_window_start_s' not in st.session_state or \
            'current_window_end_s' not in st.session_state or \
@@ -167,11 +167,11 @@ with col2:
         fig = current_ekg_data.plot_time_series(start_s=start_des_fensters_sekunden, end_s=ende_des_fensters_sekunden)
         st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("Zum näheren Auswählen des Zeitbereichs: Linksklick gedrückt halten und mit rechts horizontal ziehen.")
+        st.markdown("Tipp: Zum Einstellen links drücken und nach rechts ziehen.")
 
         col_hr1, col_hr2 = st.columns(2)
         with col_hr1:
-            st.metric("Ø Herzfrequenz (gesamt)", f"{current_ekg_data.estimate_hr():.2f} bpm")
+            st.metric("Durchschnittliche Herzfrequenz (gesamt)", f"{current_ekg_data.estimate_hr():.2f} bpm")
         with col_hr2:
             avg_hr_window = current_ekg_data.estimate_hr(start_s=start_des_fensters_sekunden, end_s=ende_des_fensters_sekunden)
-            st.metric("Ø Herzfrequenz (Fenster)", f"{avg_hr_window:.2f} bpm")
+            st.metric("Durchschnittliche Herzfrequenz (aktuelles Fenster)", f"{avg_hr_window:.2f} bpm")
