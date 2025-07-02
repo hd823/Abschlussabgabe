@@ -18,7 +18,9 @@ class EKGdata:
         self.id = ekg_dict["id"]
         self.date = ekg_dict["date"]
         self.data = ekg_dict["result_link"]
-        self.df = pd.read_csv(self.data, sep='\t', header=None, names=["Messwerte in mV","Zeit in ms",]) # EKG-Dateien kommen immer als .txt
+        self.df = pd.read_csv(self.data, sep='\t', header=None, names=["Messwerte in mV","Zeit in ms"])
+        start_ms = self.df["Zeit in ms"].iloc[0]
+        self.df["Zeit in ms"] = self.df["Zeit in ms"] - start_ms
         self.df["Zeit in s"] = self.df["Zeit in ms"] / 1000
         self.df["Zeit in min"] = self.df["Zeit in s"] / 60
         self.set_peaks()
@@ -27,7 +29,7 @@ class EKGdata:
 
         df_ekg_subset = self.df.copy()
 
-        info = nk.ecg_findpeaks(df_ekg_subset["Messwerte in mV"], sampling_rate=600, show=False)
+        info = nk.ecg_findpeaks(df_ekg_subset["Messwerte in mV"], sampling_rate=500, show=False)
         return info
 
     def set_peaks(self):
