@@ -4,7 +4,6 @@ sys.path.append(os.path.abspath("./source"))
 import streamlit as st
 from PIL import Image
 
-from source.functions_hr_plot import analyse_heart_rate, plot_analysed_hr, calculate_time_per_zone
 from source.ekg_data import EKGdata
 from source.person_class import Person
 
@@ -184,11 +183,15 @@ with col2:
         fig = current_ekg_data.plot_time_series(start_s=start_des_fensters_sekunden, end_s=ende_des_fensters_sekunden)
         st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("Tipp: Zum Einstellen links drücken und nach rechts ziehen.")
+        st.markdown("Tipp: Zum Einstellen linke Maustaste drücken und nach rechts ziehen.")
 
         col_hr1, col_hr2 = st.columns(2)
+        
         with col_hr1:
             st.metric("Durchschnittliche Herzfrequenz (gesamt)", f"{current_ekg_data.estimate_hr():.2f} bpm")
         with col_hr2:
             avg_hr_window = current_ekg_data.estimate_hr(start_s=start_des_fensters_sekunden, end_s=ende_des_fensters_sekunden)
-            st.metric("Durchschnittliche Herzfrequenz (aktuelles Fenster)", f"{avg_hr_window:.2f} bpm")
+            if avg_hr_window is not None:
+                st.metric("Durchschnittliche Herzfrequenz (aktuelles Fenster)", f"{avg_hr_window:.2f} bpm")
+            else:
+                st.metric("Durchschnittliche Herzfrequenz (aktuelles Fenster)", "Nicht verfügbar")
