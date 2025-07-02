@@ -1,5 +1,6 @@
 import json
 import datetime as dt
+import os
 
 class Person:
     '''
@@ -7,14 +8,16 @@ class Person:
     Werden in JSON-Datei person_db.json gespeichert.
     '''
     @staticmethod
-    def load_person_data(FILE_PATH="data/person_db.json") -> list:
+    def load_person_data(FILE_PATH = "data/person_db.json"):
         """
-        Wandelt JSON-Datei in eine Liste um
-        Ausgabeparameter: Liste mit Personendaten
+        Lädt die bestehenden Personendaten aus der JSON-Datei.
+        Gibt eine leere Liste zurück, wenn die Datei nicht existiert.
         """
-        with open(FILE_PATH) as file:
-            person_data = json.load(file)
-        return person_data
+        if os.path.exists(FILE_PATH):
+            with open(FILE_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return []
+
 
     @staticmethod
     def get_person_list(person_data : list) -> list[str]:
@@ -49,6 +52,14 @@ class Person:
             if eintrag["lastname"] == nachname and eintrag["firstname"] == vorname:
                 return eintrag
         return None
+    
+    @staticmethod
+    def safe_person_data(data, FILE_PATH = "data/person_db.json"):
+        """
+        Speichert die übergebenen Personendaten in der JSON-Datei.
+        """
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
     
     def calc_age(self) -> int:
         """
